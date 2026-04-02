@@ -1,0 +1,172 @@
+#!/usr/bin/env node
+/**
+ * mythos-install — Install the MythOS AI harness into any repo.
+ *
+ * Usage (inside your repo root):
+ *   npx mythos-install
+ *
+ * What it does:
+ *   1. Asks 5 questions about your project
+ *   2. Writes CLAUDE.md + .mythos/ skeleton
+ *   3. Installs 6 MythOS skills globally (~/.claude/skills/)
+ */
+
+import { existsSync, writeFileSync, mkdirSync, readdirSync, readFileSync } from 'fs'
+import { join, dirname }                                                    from 'path'
+import { homedir }                                                          from 'os'
+import { fileURLToPath }                                                    from 'url'
+import chalk                                                                from 'chalk'
+import { askInstallQuestions, generateStandardsMd }                         from './questions.mjs'
+import { getCLAUDEMd, getProductMd, memoryFiles, skills }                   from './templates.mjs'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const cwd       = process.cwd()
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function writeFile(relPath, content) {
+  const abs = join(cwd, relPath)
+  mkdirSync(dirname(abs), { recursive: true })
+  writeFileSync(abs, content, 'utf8')
+}
+
+function writeGlobal(absPath, content) {
+  mkdirSync(dirname(absPath), { recursive: true })
+  writeFileSync(absPath, content, 'utf8')
+}
+
+function banner(text) {
+  console.log('')
+  console.log(chalk.bold('  ' + text))
+}
+
+function item(label, value) {
+  console.log('  ' + chalk.green('✓') + ' ' + chalk.white(label) + (value ? chalk.dim(` — ${value}`) : ''))
+}
+
+// ─── Guards ─────────────────────────────────────────────────────────────────
+
+if (!existsSync(join(cwd, 'package.json')) && !existsSync(join(cwd, 'CLAUDE.md'))) {
+  console.log('')
+  console.log(chalk.yellow('  ⚠  No package.json found in current directory.'))
+  console.log(chalk.dim('     Run mythos-install from your project root.'))
+  console.log(chalk.dim('     Continuing anyway — you can move files after install.'))
+  console.log('')
+}
+
+// ─── Already installed? ─────────────────────────────────────────────────────
+
+const alreadyInstalled = existsSync(join(cwd, '.mythos', 'context', 'standards.md'))
+if (alreadyInstalled) {
+  console.log('')
+  console.log(chalk.yellow('  MythOS is already installed in this project.'))
+  console.log(chalk.dim('  To re-configure, delete .mythos/context/standards.md and re-run.'))
+  console.log(chalk.dim('  Skills will be re-installed regardless.'))
+  console.log('')
+}
+
+// ─── Questions ──────────────────────────────────────────────────────────────
+
+let answers = null
+if (!alreadyInstalled) {
+  answers = await askInstallQuestions()
+}
+
+// ─── Write .mythos/ structure ───────────────────────────────────────────────
+
+banner('Writing .mythos/')
+
+if (!alreadyInstalled && answers) {
+  writeFile('CLAUDE.md', getCLAUDEMd())
+  item('CLAUDE.md')
+
+  writeFile('.mythos/context/product.md', getProductMd(answers.product, answers.audience))
+  item('.mythos/context/product.md')
+
+  writeFile('.mythos/context/standards.md', generateStandardsMd(answers))
+  item('.mythos/context/standards.md')
+}
+
+// Copy evaluation-rubrics.md from package source
+const sourceDir = join(__dirname, '..', 'source')
+
+const rubricsSource = join(sourceDir, 'evaluation-rubrics.md')
+if (existsSync(rubricsSource)) {
+  writeFile('.mythos/context/evaluation-rubrics.md', readFileSync(rubricsSource, 'utf8'))
+  item('.mythos/context/evaluation-rubrics.md')
+}
+
+// Copy evaluation-examples from package source
+const examplesSource = join(sourceDir, 'evaluation-examples')
+if (existsSync(examplesSource)) {
+  for (const f of readdirSync(examplesSource)) {
+    writeFile(`.mythos/context/evaluation-examples/${f}`, readFileSync(join(examplesSource, f), 'utf8'))
+  }
+  item('.mythos/context/evaluation-examples/', '6 calibration anchors')
+}
+
+// Write empty memory files (skip if already exist)
+for (const [filename, content] of Object.entries(memoryFiles)) {
+  const destPath = `.mythos/memory/${filename}`
+  if (!existsSync(join(cwd, destPath))) {
+    writeFile(destPath, content)
+  }
+}
+item('.mythos/memory/', `${Object.keys(memoryFiles).length} files`)
+
+// Empty scaffold dirs
+for (const dir of [
+  '.mythos/memory/outcomes/skills',
+  '.mythos/memory/outcomes/agents',
+  '.mythos/memory/rules',
+  '.mythos/sprints/active',
+  '.mythos/sprints/archive',
+  '.mythos/snapshots',
+]) {
+  mkdirSync(join(cwd, dir), { recursive: true })
+}
+
+// Copy checklists from package source
+const checklistsSource = join(sourceDir, 'checklists')
+if (existsSync(checklistsSource)) {
+  for (const f of readdirSync(checklistsSource)) {
+    writeFile(`.mythos/checklists/${f}`, readFileSync(join(checklistsSource, f), 'utf8'))
+  }
+  item('.mythos/checklists/', '3 checklists')
+}
+
+// Copy rules README from package source
+const rulesSource = join(sourceDir, 'rules', 'README.md')
+if (existsSync(rulesSource)) {
+  writeFile('.mythos/memory/rules/README.md', readFileSync(rulesSource, 'utf8'))
+  item('.mythos/memory/rules/README.md')
+}
+
+// ─── Install skills globally ─────────────────────────────────────────────────
+
+banner('Installing skills → ~/.claude/skills/')
+
+const skillsBase = join(homedir(), '.claude', 'skills')
+for (const [skillName, skillContent] of Object.entries(skills)) {
+  const skillDir = join(skillsBase, skillName)
+  writeGlobal(join(skillDir, 'SKILL.md'), skillContent)
+  item(`/${skillName.replace('mythos-', 'mythos:')}`, '~/.claude/skills/')
+}
+
+// ─── Done ─────────────────────────────────────────────────────────────────────
+
+console.log('')
+console.log(chalk.bold('  ▸ MythOS installed'))
+console.log('  ' + '─'.repeat(38))
+console.log('  ' + chalk.dim('standards.md    generated from your answers'))
+console.log('  ' + chalk.dim('memory/         ready for decisions and outcomes'))
+console.log('  ' + chalk.dim('skills          installed to ~/.claude/skills/'))
+console.log('')
+console.log('  Suggested first step:')
+console.log('  ' + chalk.white('/mythos:audit') + chalk.dim(' — get your baseline codebase score'))
+console.log('  ' + chalk.dim('                and generate your first sprints'))
+console.log('')
+console.log('  Then when ready:')
+console.log('  ' + chalk.white('/mythos:do sprints'))
+console.log('  ' + '─'.repeat(38))
+console.log('')
