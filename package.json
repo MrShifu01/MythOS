@@ -1,0 +1,25 @@
+{
+  "name": "mythos-install",
+  "version": "0.1.0",
+  "description": "MythOS — AI workflow harness installer",
+  "type": "module",
+  "bin": {
+    "mythos-install": "mythos-install/install.mjs"
+  },
+  "files": [
+    "mythos-install/",
+    "skills/",
+    "source/"
+  ],
+  "scripts": {
+    "test": "node --test mythos-install/__tests__/installer.test.mjs"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "prompts": "^2.4.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT"
+}
