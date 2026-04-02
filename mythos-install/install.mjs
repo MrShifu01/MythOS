@@ -153,6 +153,56 @@ for (const [skillName, skillContent] of Object.entries(skills)) {
   item(`/${skillName.replace('mythos-', 'mythos:')}`, '~/.claude/skills/')
 }
 
+// ─── Install MCPs ─────────────────────────────────────────────────────────────
+
+banner('Installing MCPs')
+
+const MCPS = [
+  {
+    name: 'context7',
+    description: 'live docs lookup — up-to-date library and API references',
+    cmd: 'claude mcp add --transport http context7 https://mcp.context7.com/mcp',
+  },
+  {
+    name: 'claude-peers',
+    description: 'parallel execution + cross-session awareness',
+    cmd: 'claude mcp add claude-peers npx @louislva/claude-peers-mcp',
+  },
+  {
+    name: 'openspace',
+    description: 'self-improving skill library',
+    cmd: 'claude mcp add openspace npx openspace-mcp',
+  },
+]
+
+// Check which MCPs are already installed
+let installedMcps = ''
+try {
+  const { execSync } = await import('child_process')
+  installedMcps = execSync('claude mcp list', { encoding: 'utf8', stdio: 'pipe' }).toLowerCase()
+} catch { /* claude CLI not available — skip MCP install */ }
+
+if (installedMcps !== '') {
+  const { execSync } = await import('child_process')
+  for (const mcp of MCPS) {
+    if (installedMcps.includes(mcp.name.toLowerCase())) {
+      console.log('  ' + chalk.dim('✓') + ' ' + chalk.dim(mcp.name + ' — already installed'))
+    } else {
+      try {
+        execSync(mcp.cmd, { encoding: 'utf8', stdio: 'pipe' })
+        item(mcp.name, mcp.description)
+      } catch (e) {
+        console.log('  ' + chalk.yellow('⚠') + ' ' + chalk.white(mcp.name) + chalk.dim(' — install failed (run manually: ' + mcp.cmd + ')'))
+      }
+    }
+  }
+} else {
+  console.log(chalk.dim('  claude CLI not found — install MCPs manually:'))
+  for (const mcp of MCPS) {
+    console.log(chalk.dim('    ' + mcp.cmd))
+  }
+}
+
 // ─── Done ─────────────────────────────────────────────────────────────────────
 
 console.log('')
