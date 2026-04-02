@@ -32,8 +32,8 @@ test('getProductMd interpolates product and audience', () => {
   assert.ok(md.includes('freelancers'),    'audience missing')
 })
 
-test('memoryFiles contains all 6 expected files', () => {
-  const expected = ['decisions.md', 'constraints.md', 'lessons.md', 'observations.md', 'hypotheses.md', 'audit-scores.md']
+test('memoryFiles contains all 7 expected files', () => {
+  const expected = ['decisions.md', 'constraints.md', 'lessons.md', 'observations.md', 'hypotheses.md', 'audit-scores.md', 'session.md']
   for (const f of expected) {
     assert.ok(f in memoryFiles, `memoryFiles missing: ${f}`)
     assert.ok(memoryFiles[f].length > 0, `${f} is empty`)

@@ -9,6 +9,7 @@ allowed-tools: Read, Write, Edit
 Given any input, determine the correct memory tier and write it there.
 
 **Routing rules:**
+- Session state (what happened, what's in-flight, what to do next) → `.mythos/memory/session.md` (overwrite, not append)
 - Hard constraint (non-negotiable rule that must never break) → `.mythos/memory/constraints.md`
 - Architectural decision (choice between alternatives with tradeoffs) → `.mythos/memory/decisions.md`
 - High-scoring output (score ≥75) → `.mythos/memory/outcomes/<role>.md` with score and date

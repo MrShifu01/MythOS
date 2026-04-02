@@ -8,12 +8,13 @@ export function getCLAUDEMd() {
 You are operating inside MythOS — an AI harness built for intelligent models.
 You are not being scripted. You are being given context and trusted to judge.
 
-## Session Start — load these 5 files
+## Session Start — load these 6 files
 1. \`.mythos/context/product.md\`
 2. \`.mythos/context/standards.md\`
-3. \`.mythos/memory/decisions.md\` (last 20 entries)
-4. \`.mythos/memory/constraints.md\`
-5. \`.mythos/memory/audit-scores.md\` (last 5 entries)
+3. \`.mythos/memory/session.md\`
+4. \`.mythos/memory/decisions.md\` (last 20 entries)
+5. \`.mythos/memory/constraints.md\`
+6. \`.mythos/memory/audit-scores.md\` (last 5 entries)
 
 ## Outcome Rule
 No work begins without a scoreable outcome definition.
@@ -75,6 +76,7 @@ export const memoryFiles = {
   'observations.md': `# Observations\n\nRecurring patterns and team observations worth noting.\n\n---\n`,
   'hypotheses.md': `# Hypotheses\n\nIdeas under investigation. Each hypothesis: stated assumption, how to test it, status.\n\n---\n`,
   'audit-scores.md': `# Audit Score History\n\nTimestamped composite scores from \`/mythos:audit\` runs.\n\n---\n`,
+  'session.md': `# Session State\n**Last active:** —\n**In-flight:** —\n**Next:** —\n\nUpdate this at the end of every session. The next session reads it first.\n`,
 }
 
 /**
@@ -215,6 +217,7 @@ allowed-tools: Read, Write, Edit
 Given any input, determine the correct memory tier and write it there.
 
 **Routing rules:**
+- Session state (what happened, what's in-flight, what to do next) → \`.mythos/memory/session.md\` (overwrite, not append)
 - Hard constraint (non-negotiable rule that must never break) → \`.mythos/memory/constraints.md\`
 - Architectural decision (choice between alternatives with tradeoffs) → \`.mythos/memory/decisions.md\`
 - High-scoring output (score ≥75) → \`.mythos/memory/outcomes/<role>.md\` with score and date
