@@ -236,7 +236,12 @@ allowed-tools: Read, Bash, Glob
 
 # /mythos:status
 
-Read \`.mythos/memory/\` and \`.mythos/memory/audit-scores.md\`. Output exactly this format. Nothing more.
+**Output contract:**
+- Read \`.mythos/memory/\` and count entries in each file
+- Read \`.mythos/memory/audit-scores.md\` for score history
+- Total output ≤20 lines, exactly the format below — nothing more
+
+Output exactly this format:
 
 \`\`\`
 ▸ MythOS  ·  status
