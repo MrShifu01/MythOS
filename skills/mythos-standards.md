@@ -20,4 +20,9 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 **Relation-aware analysis:** Follow relation links from low-scoring entries back to the standards they were evaluated against. If multiple entries score poorly on the same standard, the standard wording likely needs sharpening.
 
+**Taste-aware analysis:** Cross-reference `~/.mythos/taste/profile.md` with standards.md:
+- Strong taste patterns not reflected in standards → propose adding them
+- Standards that conflict with established taste patterns → flag for resolution
+- Categories with low acceptance rates → standards may need sharpening
+
 Do not modify standards.md without showing the proposed diff and confirming with the user first.

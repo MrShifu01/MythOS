@@ -17,6 +17,7 @@ Load lightweight context first, retrieve deeper knowledge on demand:
 3. \`.mythos/memory/context-tree/operations/session/current.md\` — last session state
 4. All domain summaries: \`.mythos/memory/context-tree/*/context.md\` — ambient awareness of stored knowledge
 5. Any entry with \`maturity: core\` in frontmatter — foundational knowledge always in context
+6. \`~/.mythos/taste/profile.md\` (if exists) — YOUR coding preferences learned from past corrections (cross-project)
 
 Do NOT load all entries at startup. Use progressive retrieval (Tier 2-4) when a task needs specific knowledge.
 See \`source/retrieval-spec.md\` for the 5-tier strategy.
@@ -38,7 +39,7 @@ After any non-trivial decision: curate via \`/mythos:remember\` → Context Tree
 After any high-scoring output (≥75): curate via \`/mythos:remember\` → outcomes/
 When retrieving knowledge: update entry \`importance\` (+3 access bonus)
 
-Specs: \`source/context-tree.md\`, \`source/akl-spec.md\`, \`source/relations-spec.md\`
+Specs: \`source/context-tree.md\`, \`source/akl-spec.md\`, \`source/relations-spec.md\`, \`source/taste-spec.md\`
 
 ## Hard Constraints
 - No work begins without a scoreable outcome definition
@@ -47,13 +48,20 @@ Specs: \`source/context-tree.md\`, \`source/akl-spec.md\`, \`source/relations-sp
 - Save architectural decisions to Context Tree before proceeding
 - Never create entries without frontmatter (id, domain, topic, importance, maturity, relations)
 
+## Taste — Cross-Project Learning
+\`/mythos:taste\` learns YOUR preferences by analyzing git diffs between Claude's output and what you actually ship.
+Taste profile lives at \`~/.mythos/taste/profile.md\` — shared across all projects.
+Corrections accumulate: patterns seen ≥2 times become preferences applied in \`/mythos:do\`.
+See \`source/taste-spec.md\` for full specification.
+
 ## Commands
-/mythos:do        — define outcome + progressive retrieval + execute + score
+/mythos:do        — define outcome + progressive retrieval + taste-aware execution + score
 /mythos:audit     — full codebase health score + Context Tree health + generate sprints
-/mythos:evolve    — improve standards, rubrics, skills, Context Tree lifecycle
+/mythos:evolve    — improve standards, rubrics, skills, Context Tree lifecycle, taste integration
 /mythos:remember  — curate knowledge into Context Tree (ADD/UPDATE/UPSERT/MERGE/DELETE)
-/mythos:status    — Context Tree dashboard + AKL lifecycle + score trends
-/mythos:standards — update standards.md from Context Tree evidence
+/mythos:taste     — learn YOUR coding preferences from git diffs (cross-project)
+/mythos:status    — Context Tree dashboard + AKL lifecycle + taste stats + score trends
+/mythos:standards — update standards.md from Context Tree + taste evidence
 
 ## Trust yourself
 You have the context, the quality bar, and the memory.
@@ -315,6 +323,16 @@ Before starting work, retrieve relevant knowledge from the Context Tree using th
 
 **Out-of-domain:** If no relevant knowledge exists in the Context Tree, say so explicitly. Proceed with general knowledge but flag the gap.
 
+## Taste-Aware Execution
+
+If \`~/.mythos/taste/profile.md\` exists, apply the human's preferences during execution:
+- Use their naming conventions (\`naming\` patterns)
+- Follow their structural preferences (\`architecture\` patterns)
+- Match their verbosity level (\`verbosity\` patterns)
+- Avoid patterns they consistently reject
+
+Taste preferences are soft — deviate with good reason, but default to matching the human's style.
+
 ## Output Contract
 
 - Scoreable outcome defined before first file edit
@@ -322,6 +340,7 @@ Before starting work, retrieve relevant knowledge from the Context Tree using th
 - Non-trivial decisions logged via \`/mythos:remember\` → Context Tree
 - Output scored against \`.mythos/context/evaluation-rubrics.md\` — score reported with dimensional breakdown
 - If retrieval found relevant entries, cite them in the score report
+- If taste profile influenced execution, note which preferences were applied
 
 **Skill creation mode:** When asked to create a skill — generate the skill, write 3 synthetic evaluation tests against it, score them against evaluation-rubrics.md, only write the file if ≥2 tests score ≥75.
 
@@ -403,7 +422,7 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 # /mythos:evolve
 
 **Before any pass:** Save snapshot to \`.mythos/snapshots/YYYY-MM-DD-HHmm/\` containing:
-standards.md, evaluation-rubrics.md, evaluation-examples/, all 6 skill files, CLAUDE.md, and \`.relations-index.json\`.
+standards.md, evaluation-rubrics.md, evaluation-examples/, all 7 skill files, CLAUDE.md, and \`.relations-index.json\`.
 
 **Mode selection:**
 - *Evidence mode* — outcomes library has ≥3 real entries per artifact: use scored real outputs, compare wording variants, keep higher scorer
@@ -457,9 +476,19 @@ Each evolve pass also reviews the Context Tree:
   · archival    [N] entries flagged (importance < 20)
   · orphans     [N] entries with no relations
 
+  TASTE INTEGRATION
+  · corrections reviewed    [N] new since last evolve
+  · standards gaps          [N] taste patterns not in standards.md
+  · acceptance trend        [N]% ([trend])
+
   To rollback:  /mythos:evolve rollback
 ──────────────────────────────────────────
 \\\`\\\`\\\`
+
+**Taste-informed evolution:** Cross-reference \`~/.mythos/taste/corrections.md\` with \`standards.md\`:
+- If taste corrections contradict a standard → flag the tension
+- If taste corrections reveal a missing standard → propose adding it
+- If acceptance rate drops in a category → investigate and propose fix
 
 **Rollback mode:** \`/mythos:evolve rollback\` — list all snapshots with composite score at capture time. User picks one to restore.
 `,
@@ -577,6 +606,11 @@ allowed-tools: Read, Bash, Glob, Grep
   RELATIONS
   total links    [N] · orphans [N]
 
+  TASTE (global — ~/.mythos/taste/)
+  acceptance     [N]% ([trend] vs last 30d)
+  patterns       [N] ([N] strong · [N] moderate)
+  top correction [category]: [pattern]
+
   SCORES
   last audit     [score]/100  [date]
   trend          [↑ / ↓ / →] vs previous
@@ -586,6 +620,7 @@ allowed-tools: Read, Bash, Glob, Grep
 \\\`\\\`\\\`
 
 Count \`.md\` files per domain (excluding \`context.md\`). Read frontmatter for maturity.
+Read \`~/.mythos/taste/stats.md\` for taste metrics. If not present, show "no taste data yet".
 If Context Tree doesn't exist yet, fall back to flat \`.mythos/memory/\` files.
 `,
 
@@ -610,7 +645,74 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 **Relation-aware analysis:** Follow relation links from low-scoring entries back to the standards they were evaluated against.
 
+**Taste-aware analysis:** Cross-reference \`~/.mythos/taste/profile.md\` with standards.md:
+- Strong taste patterns not reflected in standards → propose adding them
+- Standards that conflict with established taste patterns → flag for resolution
+- Categories with low acceptance rates → standards may need sharpening
+
 Do not modify standards.md without showing the proposed diff and confirming with the user first.
+`,
+
+'mythos-taste': `---
+name: mythos:taste
+description: Learn YOUR coding preferences from git diffs. Compares what Claude produced vs what you actually shipped. Cross-project taste profile at ~/.mythos/taste/.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
+---
+
+# /mythos:taste
+
+Learn from the gap between what Claude produces and what you actually commit.
+
+## Modes
+
+### \`/mythos:taste\` (default — analyze recent diffs)
+
+1. **Find Claude commits** in git log (last 30 days):
+   - Commits with \`claude.ai/code/session\` in message
+   - Commits authored by claude/anthropic
+2. **Find human follow-up edits** to the same files
+3. **Classify each file:** accepted (unchanged), corrected (edited), rejected (reverted)
+4. **Extract correction patterns** and classify: style, architecture, error-handling, simplicity, verbosity, safety, testing, ux, naming, dependencies
+5. **Update global taste files** at \`~/.mythos/taste/\`
+
+### \`/mythos:taste review\` — show current profile
+### \`/mythos:taste reset\` — clear all taste data (with confirmation)
+### \`/mythos:taste ignore [pattern]\` — exclude a pattern
+
+## Confidence Scoring
+
+| Observations | Confidence | Behavior |
+|-------------|-----------|----------|
+| 1 | weak | Logged only |
+| 2-3 | moderate | In profile, soft preference |
+| 4-6 | strong | Default preference in /mythos:do |
+| 7+ | established | Personal standard |
+
+Cross-project observations count double.
+
+## Output Contract
+
+\\\`\\\`\\\`
+▸ MythOS  ·  taste
+──────────────────────────────────────────
+  scanned        [N] Claude commits, [N] files
+  accepted       [N] files ([N]%)
+  corrected      [N] files ([N]%)
+  rejected       [N] files ([N]%)
+
+  NEW PATTERNS
+  · [category]: [pattern] (observation [N])
+
+  STRENGTHENED PATTERNS
+  · [category]: [pattern] ([old] → [new] confidence)
+
+  PROFILE
+  [N] patterns ([N] strong, [N] moderate, [N] weak)
+  acceptance rate: [N]% ([trend])
+
+  taste profile → ~/.mythos/taste/profile.md
+──────────────────────────────────────────
+\\\`\\\`\\\`
 `,
 
 }

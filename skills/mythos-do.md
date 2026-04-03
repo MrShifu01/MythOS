@@ -27,6 +27,16 @@ Before starting work, retrieve relevant knowledge from the Context Tree using th
 
 **Out-of-domain:** If no relevant knowledge exists in the Context Tree, say so explicitly. Proceed with general knowledge but flag the gap.
 
+## Taste-Aware Execution
+
+If `~/.mythos/taste/profile.md` exists, apply the human's preferences during execution:
+- Use their naming conventions (`naming` patterns)
+- Follow their structural preferences (`architecture` patterns)
+- Match their verbosity level (`verbosity` patterns)
+- Avoid patterns they consistently reject
+
+Taste preferences are soft — deviate with good reason, but default to matching the human's style.
+
 ## Output Contract
 
 - Scoreable outcome defined before first file edit
@@ -34,6 +44,7 @@ Before starting work, retrieve relevant knowledge from the Context Tree using th
 - Non-trivial decisions logged via `/mythos:remember` → Context Tree
 - Output scored against `.mythos/context/evaluation-rubrics.md` — score reported with dimensional breakdown
 - If retrieval found relevant entries, cite them in the score report
+- If taste profile influenced execution, note which preferences were applied
 
 **Skill creation mode:** When asked to create a skill — generate the skill, write 3 synthetic evaluation tests against it, score them against evaluation-rubrics.md, only write the file if ≥2 tests score ≥75.
 

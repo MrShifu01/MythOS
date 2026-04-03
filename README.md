@@ -8,7 +8,7 @@ An AI workflow harness for Claude Code. Gives the model the right context and ge
 npx mythos-install
 ```
 
-Asks 5 questions about your project. Generates `.mythos/` with your standards, Context Tree, and calibration anchors. Installs 6 skills to `~/.claude/skills/`.
+Asks 5 questions about your project. Generates `.mythos/` with your standards, Context Tree, and calibration anchors. Installs 7 skills to `~/.claude/skills/`.
 
 ## The four mechanisms
 
@@ -27,13 +27,20 @@ After install, these slash commands are available in Claude Code:
 | `/mythos:audit` | Full codebase health score (8 dimensions) + Context Tree health + generates sprint file. |
 | `/mythos:evolve` | Improve standards, rubrics, skills, and Context Tree lifecycle via scored evidence. |
 | `/mythos:remember` | Curate knowledge into Context Tree with atomic operations (ADD/UPDATE/UPSERT/MERGE/DELETE). |
-| `/mythos:status` | Context Tree dashboard + AKL lifecycle + score trends. |
-| `/mythos:standards` | Sharpen standards.md from Context Tree evidence. |
+| `/mythos:taste` | Learn YOUR coding preferences from git diffs — cross-project at `~/.mythos/taste/`. |
+| `/mythos:status` | Context Tree dashboard + AKL lifecycle + taste stats + score trends. |
+| `/mythos:standards` | Sharpen standards.md from Context Tree + taste evidence. |
 
 ## What gets installed
 
 ```
-CLAUDE.md                              (~50 lines)
+~/.mythos/                             (global — cross-project)
+  taste/
+    profile.md                         (synthesized coding preferences)
+    corrections.md                     (raw correction log from git diffs)
+    stats.md                           (acceptance rates by category + project)
+
+CLAUDE.md                              (~55 lines)
 .mythos/
   context/
     product.md                         (your product + audience)
@@ -44,6 +51,7 @@ CLAUDE.md                              (~50 lines)
     akl-spec.md                        (Adaptive Knowledge Lifecycle spec)
     retrieval-spec.md                  (5-tier progressive retrieval spec)
     relations-spec.md                  (relation graph spec)
+    taste-spec.md                      (cross-project taste learning spec)
   memory/
     context-tree/                      (hierarchical knowledge graph)
       architecture/                    (decisions, patterns)
@@ -67,6 +75,20 @@ CLAUDE.md                              (~50 lines)
     archive/
   snapshots/
 ```
+
+## Taste Learning — The Cross-Project Network Effect
+
+MythOS learns YOUR coding preferences by analyzing git diffs between what Claude produces and what you actually commit. This is the strongest signal for calibration — behavioral, not declared.
+
+- **Diff-based** — After Claude works, `/mythos:taste` compares Claude's output to your committed version
+- **Cross-project** — Taste profile lives at `~/.mythos/taste/` (global). Every project makes every other project better.
+- **Confidence-weighted** — Patterns need ≥2 observations to influence behavior. 7+ observations become personal standards.
+- **10 categories** — `style`, `architecture`, `error-handling`, `simplicity`, `verbosity`, `safety`, `testing`, `ux`, `naming`, `dependencies`
+- **Acceptance tracking** — Files classified as accepted/corrected/rejected. Acceptance rate trends over time.
+
+The taste profile feeds into every skill: `/mythos:do` applies your preferences during execution, `/mythos:evolve` cross-references taste with standards, `/mythos:standards` proposes elevating strong taste patterns to project standards.
+
+See `source/taste-spec.md` for full specification.
 
 ## Context Tree
 
@@ -95,6 +117,6 @@ SmashOS users: MythOS replaces SmashOS. The key changes:
 | CLAUDE.md (170 lines) | CLAUDE.md (~50 lines, generated) |
 | 12 role files | `standards.md` (one file, your team's taste) |
 | 47 agent files | 0 agent files (model judges) |
-| 15+ skills | 6 skills |
+| 15+ skills | 7 skills |
 | Behavioral guardrail layer | Removed — "trust yourself" principle |
 | Flat memory files | Context Tree with AKL lifecycle + relation graph |

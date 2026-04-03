@@ -7,7 +7,7 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 # /mythos:evolve
 
 **Before any pass:** Save snapshot to `.mythos/snapshots/YYYY-MM-DD-HHmm/` containing:
-standards.md, evaluation-rubrics.md, evaluation-examples/, all 6 skill files, CLAUDE.md, and `.relations-index.json`.
+standards.md, evaluation-rubrics.md, evaluation-examples/, all 7 skill files, CLAUDE.md, and `.relations-index.json`.
 
 **Mode selection:**
 - *Evidence mode* — outcomes library has ≥3 real entries per artifact: use scored real outputs, compare wording variants, keep higher scorer
@@ -39,6 +39,14 @@ In addition to artifact evolution, each evolve pass reviews the Context Tree:
 ### Context Summary Refresh
 - Regenerate `context.md` files for any domain/topic that changed since last evolve
 - Update entry counts, maturity distributions, and key entries
+
+## Taste-Informed Evolution
+
+Cross-reference `~/.mythos/taste/corrections.md` with `standards.md`:
+- If taste corrections contradict a standard → flag the tension
+- If taste corrections reveal a missing standard → propose adding it
+- If acceptance rate drops in a category → investigate and propose fix
+- Strong taste patterns (≥4 observations) should be considered for standards elevation
 
 ## Output Contract
 
@@ -72,6 +80,11 @@ In addition to artifact evolution, each evolve pass reviews the Context Tree:
   · archival    [N] entries flagged (importance < 20)
   · orphans     [N] entries with no relations
   · stale links [N] broken relations cleaned
+
+  TASTE INTEGRATION
+  · corrections reviewed    [N] new since last evolve
+  · standards gaps          [N] taste patterns not in standards.md
+  · acceptance trend        [N]% ([trend])
 
   To rollback:  /mythos:evolve rollback
 ──────────────────────────────────────────

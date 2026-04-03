@@ -167,13 +167,13 @@ if (!existsSync(join(cwd, relIndexPath))) {
 item('.mythos/memory/context-tree/', `${Object.keys(contextTreeDomains).length} domains with Context Tree structure`)
 
 // Copy ByteRover-inspired specs from package source
-for (const specFile of ['context-tree.md', 'akl-spec.md', 'retrieval-spec.md', 'relations-spec.md']) {
+for (const specFile of ['context-tree.md', 'akl-spec.md', 'retrieval-spec.md', 'relations-spec.md', 'taste-spec.md']) {
   const specSource = join(sourceDir, specFile)
   if (existsSync(specSource)) {
     writeFile(`.mythos/context/${specFile}`, readFileSync(specSource, 'utf8'))
   }
 }
-item('.mythos/context/', '4 spec files (Context Tree, AKL, Retrieval, Relations)')
+item('.mythos/context/', '5 spec files (Context Tree, AKL, Retrieval, Relations, Taste)')
 
 // Copy checklists from package source
 const checklistsSource = join(sourceDir, 'checklists')
@@ -190,6 +190,67 @@ if (existsSync(rulesSource)) {
   writeFile('.mythos/memory/rules/README.md', readFileSync(rulesSource, 'utf8'))
   item('.mythos/memory/rules/README.md')
 }
+
+// ─── Create global ~/.mythos/taste/ directory ────────────────────────────────
+
+banner('Setting up global taste profile → ~/.mythos/taste/')
+
+const globalMythosDir = join(homedir(), '.mythos', 'taste')
+mkdirSync(globalMythosDir, { recursive: true })
+
+const tasteFiles = {
+  'profile.md': `---
+version: 1
+last_updated: ${new Date().toISOString()}
+total_corrections: 0
+total_accepted: 0
+acceptance_rate: 0
+projects_observed: 0
+---
+
+# Taste Profile
+
+_No patterns learned yet. Run \`/mythos:taste\` after a few sessions to analyze your corrections._
+`,
+  'corrections.md': `---
+total_entries: 0
+last_entry: null
+---
+
+# Corrections Log
+
+_Run \`/mythos:taste\` to populate this log by analyzing git diffs between Claude's output and your commits._
+`,
+  'stats.md': `---
+last_updated: ${new Date().toISOString()}
+---
+
+# Acceptance Stats
+
+## Overall
+- Total files: 0
+- Accepted: 0 (0%)
+- Corrected: 0 (0%)
+- Rejected: 0 (0%)
+
+## By Category
+_No data yet._
+
+## By Project
+_No data yet._
+
+## Trend
+_No data yet. Run \`/mythos:taste\` after working with Claude across a few sessions._
+`,
+}
+
+for (const [filename, content] of Object.entries(tasteFiles)) {
+  const tastePath = join(globalMythosDir, filename)
+  if (!existsSync(tastePath)) {
+    writeGlobal(tastePath, content)
+  }
+}
+item('~/.mythos/taste/', '3 files (profile, corrections, stats)')
 
 // ─── Install skills globally ─────────────────────────────────────────────────
 

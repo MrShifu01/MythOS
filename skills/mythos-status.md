@@ -35,6 +35,11 @@ Output exactly this format:
   total links    [N] ([N] forward · [N] backward)
   orphan entries [N] (no relations)
 
+  TASTE (global — ~/.mythos/taste/)
+  acceptance     [N]% ([trend] vs last 30d)
+  patterns       [N] ([N] strong · [N] moderate)
+  top correction [category]: [pattern]
+
   SCORES
   last audit     [score]/100  [date]
   trend          [↑ / ↓ / →] vs previous
@@ -50,5 +55,7 @@ Output exactly this format:
 **AKL stats:** Calculate effective importance for each entry using `importance × 0.995^(days_since_last_event)`. Count entries below 35.
 
 **Relations:** Read `.relations-index.json` if it exists. Count total forward + backward links. An orphan entry has zero relations (no forward or backward links).
+
+**Taste:** Read `~/.mythos/taste/stats.md` for acceptance rates and `~/.mythos/taste/profile.md` for pattern counts. If not present, show "no taste data yet — run /mythos:taste".
 
 **If Context Tree doesn't exist yet** (pre-migration), fall back to counting entries in flat `.mythos/memory/` files.
