@@ -10,7 +10,7 @@ import { generateStandardsMd }                       from '../questions.mjs'
 
 // ─── templates.mjs ────────────────────────────────────────────────────────────
 
-test('getCLAUDEMd returns ≤60-line CLAUDE.md with all 7 commands', () => {
+test('getCLAUDEMd returns ≤65-line CLAUDE.md with all 6 commands', () => {
   const md = getCLAUDEMd()
   const lines = md.trim().split('\n')
   assert.ok(lines.length <= 65, `Expected ≤65 lines, got ${lines.length}`)
@@ -20,7 +20,6 @@ test('getCLAUDEMd returns ≤60-line CLAUDE.md with all 7 commands', () => {
   assert.ok(md.includes('/mythos:remember'), 'missing /mythos:remember')
   assert.ok(md.includes('/mythos:taste'),    'missing /mythos:taste')
   assert.ok(md.includes('/mythos:status'),   'missing /mythos:status')
-  assert.ok(md.includes('/mythos:standards'),'missing /mythos:standards')
 })
 
 test('getCLAUDEMd contains outcome rule and hard constraints', () => {
@@ -53,10 +52,10 @@ test('memoryFiles contains all 7 expected legacy files', () => {
   }
 })
 
-test('skills exports exactly 7 skills', () => {
+test('skills exports exactly 6 skills', () => {
   const skillNames = Object.keys(skills)
-  assert.equal(skillNames.length, 7, `Expected 7 skills, got ${skillNames.length}: ${skillNames.join(', ')}`)
-  for (const name of ['mythos-do', 'mythos-audit', 'mythos-evolve', 'mythos-remember', 'mythos-status', 'mythos-standards', 'mythos-taste']) {
+  assert.equal(skillNames.length, 6, `Expected 6 skills, got ${skillNames.length}: ${skillNames.join(', ')}`)
+  for (const name of ['mythos-do', 'mythos-audit', 'mythos-evolve', 'mythos-remember', 'mythos-status', 'mythos-taste']) {
     assert.ok(name in skills, `Missing skill: ${name}`)
   }
 })
@@ -268,8 +267,3 @@ test('mythos-status skill shows taste metrics', () => {
   assert.ok(content.includes('patterns'), 'missing patterns count')
 })
 
-test('mythos-standards skill references taste-aware analysis', () => {
-  const content = skills['mythos-standards']
-  assert.ok(content.includes('Taste-aware'), 'missing taste-aware analysis')
-  assert.ok(content.includes('taste/profile.md'), 'missing taste profile reference')
-})

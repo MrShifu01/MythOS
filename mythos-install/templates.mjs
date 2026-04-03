@@ -61,7 +61,6 @@ See \`source/taste-spec.md\` for full specification.
 /mythos:remember  — curate knowledge into Context Tree (ADD/UPDATE/UPSERT/MERGE/DELETE)
 /mythos:taste     — learn YOUR coding preferences from git diffs (cross-project)
 /mythos:status    — Context Tree dashboard + AKL lifecycle + taste stats + score trends
-/mythos:standards — update standards.md from Context Tree + taste evidence
 
 ## Trust yourself
 You have the context, the quality bar, and the memory.
@@ -422,7 +421,7 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 # /mythos:evolve
 
 **Before any pass:** Save snapshot to \`.mythos/snapshots/YYYY-MM-DD-HHmm/\` containing:
-standards.md, evaluation-rubrics.md, evaluation-examples/, all 7 skill files, CLAUDE.md, and \`.relations-index.json\`.
+standards.md, evaluation-rubrics.md, evaluation-examples/, all 6 skill files, CLAUDE.md, and \`.relations-index.json\`.
 
 **Mode selection:**
 - *Evidence mode* — outcomes library has ≥3 real entries per artifact: use scored real outputs, compare wording variants, keep higher scorer
@@ -622,35 +621,6 @@ allowed-tools: Read, Bash, Glob, Grep
 Count \`.md\` files per domain (excluding \`context.md\`). Read frontmatter for maturity.
 Read \`~/.mythos/taste/stats.md\` for taste metrics. If not present, show "no taste data yet".
 If Context Tree doesn't exist yet, fall back to flat \`.mythos/memory/\` files.
-`,
-
-'mythos-standards': `---
-name: mythos:standards
-description: Keeps standards.md sharp. Uses Context Tree evidence — outcomes, lessons, audit history — to propose specific wording improvements.
-allowed-tools: Read, Write, Edit, Glob, Grep
----
-
-# /mythos:standards
-
-**Output contract:**
-- Read \`.mythos/context/standards.md\`
-- Search Context Tree for evidence:
-  - \`outcomes/\` — scored outputs revealing standards gaps
-  - \`lessons/\` — failures caused by unclear or missing standards
-  - \`operations/audit-history/\` — audit score trends per dimension
-  - \`constraints/\` — rules that may need elevation to standards
-- For each standards.md section, check if evidence reveals a consistent gap
-- Propose specific wording changes — each backed by score delta evidence
-- Format each proposal: current wording → proposed wording, evidence: "+N pts on [dimension] in [N] sessions"
-
-**Relation-aware analysis:** Follow relation links from low-scoring entries back to the standards they were evaluated against.
-
-**Taste-aware analysis:** Cross-reference \`~/.mythos/taste/profile.md\` with standards.md:
-- Strong taste patterns not reflected in standards → propose adding them
-- Standards that conflict with established taste patterns → flag for resolution
-- Categories with low acceptance rates → standards may need sharpening
-
-Do not modify standards.md without showing the proposed diff and confirming with the user first.
 `,
 
 'mythos-taste': `---

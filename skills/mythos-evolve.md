@@ -7,7 +7,7 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 # /mythos:evolve
 
 **Before any pass:** Save snapshot to `.mythos/snapshots/YYYY-MM-DD-HHmm/` containing:
-standards.md, evaluation-rubrics.md, evaluation-examples/, all 7 skill files, CLAUDE.md, and `.relations-index.json`.
+standards.md, evaluation-rubrics.md, evaluation-examples/, all 6 skill files, CLAUDE.md, and `.relations-index.json`.
 
 **Mode selection:**
 - *Evidence mode* — outcomes library has ≥3 real entries per artifact: use scored real outputs, compare wording variants, keep higher scorer
