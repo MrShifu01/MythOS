@@ -17,7 +17,8 @@ import { homedir }                                                          from
 import { fileURLToPath }                                                    from 'url'
 import chalk                                                                from 'chalk'
 import { askInstallQuestions, generateStandardsMd }                         from './questions.mjs'
-import { getCLAUDEMd, getProductMd, memoryFiles, skills }                   from './templates.mjs'
+import { getCLAUDEMd, getProductMd, memoryFiles, skills,
+         contextTreeDomains, getSessionEntry, getRelationsIndex }            from './templates.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const cwd       = process.cwd()
@@ -114,7 +115,7 @@ for (const [filename, content] of Object.entries(memoryFiles)) {
 }
 item('.mythos/memory/', `${Object.keys(memoryFiles).length} files`)
 
-// Empty scaffold dirs
+// Empty scaffold dirs (legacy)
 for (const dir of [
   '.mythos/memory/outcomes/skills',
   '.mythos/memory/outcomes/agents',
@@ -125,6 +126,54 @@ for (const dir of [
 ]) {
   mkdirSync(join(cwd, dir), { recursive: true })
 }
+
+// ─── Context Tree (ByteRover-inspired hierarchical knowledge structure) ──────
+
+banner('Writing Context Tree → .mythos/memory/context-tree/')
+
+const ctBase = '.mythos/memory/context-tree'
+
+for (const [domain, config] of Object.entries(contextTreeDomains)) {
+  // Create domain directory and context.md
+  const domainPath = `${ctBase}/${domain}`
+  const contextPath = `${domainPath}/context.md`
+  if (!existsSync(join(cwd, contextPath))) {
+    writeFile(contextPath, config['context.md'])
+  }
+
+  // Create topic subdirectories with their own context.md
+  for (const topic of config.topics) {
+    const topicDir = `${domainPath}/${topic}`
+    mkdirSync(join(cwd, topicDir), { recursive: true })
+    const topicContextPath = `${topicDir}/context.md`
+    if (!existsSync(join(cwd, topicContextPath))) {
+      writeFile(topicContextPath, `---\ntype: context-summary\ndomain: ${domain}\ntopic: ${topic}\nentry_count: 0\nlast_updated: ${new Date().toISOString()}\n---\n\n# ${domain}/${topic} — Summary\n\n_No entries yet._\n`)
+    }
+  }
+}
+
+// Write initial session entry
+const sessionEntryPath = `${ctBase}/operations/session/current.md`
+if (!existsSync(join(cwd, sessionEntryPath))) {
+  writeFile(sessionEntryPath, getSessionEntry())
+}
+
+// Write empty relations index
+const relIndexPath = `${ctBase}/.relations-index.json`
+if (!existsSync(join(cwd, relIndexPath))) {
+  writeFile(relIndexPath, getRelationsIndex())
+}
+
+item('.mythos/memory/context-tree/', `${Object.keys(contextTreeDomains).length} domains with Context Tree structure`)
+
+// Copy ByteRover-inspired specs from package source
+for (const specFile of ['context-tree.md', 'akl-spec.md', 'retrieval-spec.md', 'relations-spec.md']) {
+  const specSource = join(sourceDir, specFile)
+  if (existsSync(specSource)) {
+    writeFile(`.mythos/context/${specFile}`, readFileSync(specSource, 'utf8'))
+  }
+}
+item('.mythos/context/', '4 spec files (Context Tree, AKL, Retrieval, Relations)')
 
 // Copy checklists from package source
 const checklistsSource = join(sourceDir, 'checklists')
@@ -209,7 +258,7 @@ console.log('')
 console.log(chalk.bold('  ▸ MythOS installed'))
 console.log('  ' + '─'.repeat(38))
 console.log('  ' + chalk.dim('standards.md    generated from your answers'))
-console.log('  ' + chalk.dim('memory/         ready for decisions and outcomes'))
+console.log('  ' + chalk.dim('context-tree/   hierarchical knowledge structure (7 domains)'))
 console.log('  ' + chalk.dim('skills          installed to ~/.claude/skills/'))
 console.log('')
 console.log('  Suggested first step:')

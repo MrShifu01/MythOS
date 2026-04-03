@@ -1,15 +1,16 @@
 // mythos-install/__tests__/installer.test.mjs
 import { test }                                      from 'node:test'
 import assert                                        from 'node:assert/strict'
-import { getCLAUDEMd, getProductMd, memoryFiles, skills } from '../templates.mjs'
+import { getCLAUDEMd, getProductMd, memoryFiles, skills,
+         contextTreeDomains, getSessionEntry, getRelationsIndex } from '../templates.mjs'
 import { generateStandardsMd }                       from '../questions.mjs'
 
 // ─── templates.mjs ────────────────────────────────────────────────────────────
 
-test('getCLAUDEMd returns ≤45-line CLAUDE.md with all 6 commands', () => {
+test('getCLAUDEMd returns ≤55-line CLAUDE.md with all 6 commands', () => {
   const md = getCLAUDEMd()
   const lines = md.trim().split('\n')
-  assert.ok(lines.length <= 45, `Expected ≤45 lines, got ${lines.length}`)
+  assert.ok(lines.length <= 55, `Expected ≤55 lines, got ${lines.length}`)
   assert.ok(md.includes('/mythos:do'),       'missing /mythos:do')
   assert.ok(md.includes('/mythos:audit'),    'missing /mythos:audit')
   assert.ok(md.includes('/mythos:evolve'),   'missing /mythos:evolve')
@@ -18,12 +19,20 @@ test('getCLAUDEMd returns ≤45-line CLAUDE.md with all 6 commands', () => {
   assert.ok(md.includes('/mythos:standards'),'missing /mythos:standards')
 })
 
-test('getCLAUDEMd contains outcome rule and 4 hard constraints', () => {
+test('getCLAUDEMd contains outcome rule and hard constraints', () => {
   const md = getCLAUDEMd()
   assert.ok(md.includes('No work begins without a scoreable outcome'), 'outcome rule missing')
   assert.ok(md.includes('No deploy without evaluation score'),         'deploy gate missing')
   assert.ok(md.includes('HIGH-tier actions'),                          'high-tier gate missing')
   assert.ok(md.includes('Save architectural decisions'),               'memory constraint missing')
+})
+
+test('getCLAUDEMd references Context Tree and progressive retrieval', () => {
+  const md = getCLAUDEMd()
+  assert.ok(md.includes('context-tree'),                'missing context-tree reference')
+  assert.ok(md.includes('Progressive Context Loading'), 'missing progressive loading')
+  assert.ok(md.includes('retrieval-spec.md'),           'missing retrieval spec reference')
+  assert.ok(md.includes('maturity: core'),              'missing core maturity reference')
 })
 
 test('getProductMd interpolates product and audience', () => {
@@ -32,7 +41,7 @@ test('getProductMd interpolates product and audience', () => {
   assert.ok(md.includes('freelancers'),    'audience missing')
 })
 
-test('memoryFiles contains all 7 expected files', () => {
+test('memoryFiles contains all 7 expected legacy files', () => {
   const expected = ['decisions.md', 'constraints.md', 'lessons.md', 'observations.md', 'hypotheses.md', 'audit-scores.md', 'session.md']
   for (const f of expected) {
     assert.ok(f in memoryFiles, `memoryFiles missing: ${f}`)
@@ -59,10 +68,110 @@ test('each skill has YAML frontmatter with name and allowed-tools', () => {
 test('each skill has an Output contract section', () => {
   for (const [name, content] of Object.entries(skills)) {
     assert.ok(
-      content.includes('Output contract') || content.includes('output contract'),
+      content.toLowerCase().includes('output contract'),
       `${name}: missing Output contract section`
     )
   }
+})
+
+// ─── Context Tree ─────────────────────────────────────────────────────────────
+
+test('contextTreeDomains contains all 7 expected domains', () => {
+  const expected = ['architecture', 'constraints', 'lessons', 'observations', 'outcomes', 'hypotheses', 'operations']
+  for (const domain of expected) {
+    assert.ok(domain in contextTreeDomains, `contextTreeDomains missing: ${domain}`)
+    assert.ok(contextTreeDomains[domain]['context.md'].length > 0, `${domain}/context.md is empty`)
+  }
+})
+
+test('contextTreeDomains — each domain context.md has YAML frontmatter', () => {
+  for (const [domain, config] of Object.entries(contextTreeDomains)) {
+    const content = config['context.md']
+    assert.ok(content.startsWith('---\n'), `${domain}: context.md missing frontmatter opening`)
+    assert.ok(content.includes('type: context-summary'), `${domain}: missing type field`)
+    assert.ok(content.includes(`domain: ${domain}`), `${domain}: missing domain field`)
+  }
+})
+
+test('contextTreeDomains — architecture has decisions and patterns topics', () => {
+  assert.deepStrictEqual(
+    contextTreeDomains.architecture.topics,
+    ['decisions', 'patterns'],
+    'architecture should have decisions and patterns topics'
+  )
+})
+
+test('contextTreeDomains — constraints has invariant, policy, preference topics', () => {
+  assert.deepStrictEqual(
+    contextTreeDomains.constraints.topics,
+    ['invariant', 'policy', 'preference'],
+    'constraints should have invariant, policy, preference topics'
+  )
+})
+
+test('contextTreeDomains — operations has session and audit-history topics', () => {
+  assert.deepStrictEqual(
+    contextTreeDomains.operations.topics,
+    ['session', 'audit-history'],
+    'operations should have session and audit-history topics'
+  )
+})
+
+test('getSessionEntry returns valid markdown with AKL frontmatter', () => {
+  const entry = getSessionEntry()
+  assert.ok(entry.startsWith('---\n'), 'session entry missing frontmatter')
+  assert.ok(entry.includes('id: current'), 'missing id field')
+  assert.ok(entry.includes('domain: operations'), 'missing domain field')
+  assert.ok(entry.includes('importance: 50'), 'missing importance field')
+  assert.ok(entry.includes('maturity: validated'), 'missing maturity field')
+  assert.ok(entry.includes('access_count: 0'), 'missing access_count field')
+  assert.ok(entry.includes('relations: []'), 'missing relations field')
+})
+
+test('getRelationsIndex returns valid empty JSON', () => {
+  const index = getRelationsIndex()
+  const parsed = JSON.parse(index)
+  assert.deepStrictEqual(parsed, {}, 'relations index should be empty object')
+})
+
+// ─── Skills — ByteRover integration ──────────────────────────────────────────
+
+test('mythos-remember skill references Context Tree and curate operations', () => {
+  const content = skills['mythos-remember']
+  assert.ok(content.includes('Context Tree'), 'missing Context Tree reference')
+  assert.ok(content.includes('ADD'),    'missing ADD operation')
+  assert.ok(content.includes('UPDATE'), 'missing UPDATE operation')
+  assert.ok(content.includes('UPSERT'), 'missing UPSERT operation')
+  assert.ok(content.includes('MERGE'),  'missing MERGE operation')
+  assert.ok(content.includes('DELETE'), 'missing DELETE operation')
+  assert.ok(content.includes('importance'), 'missing AKL importance reference')
+  assert.ok(content.includes('maturity'),   'missing AKL maturity reference')
+  assert.ok(content.includes('relations'),  'missing relations reference')
+})
+
+test('mythos-do skill references progressive retrieval tiers', () => {
+  const content = skills['mythos-do']
+  assert.ok(content.includes('Tier 0-1'), 'missing Tier 0-1')
+  assert.ok(content.includes('Tier 2'),   'missing Tier 2')
+  assert.ok(content.includes('Tier 3'),   'missing Tier 3')
+  assert.ok(content.includes('Tier 4'),   'missing Tier 4')
+  assert.ok(content.includes('Out-of-domain'), 'missing OOD detection')
+})
+
+test('mythos-audit skill references Context Tree health', () => {
+  const content = skills['mythos-audit']
+  assert.ok(content.includes('Context Tree Health'), 'missing Context Tree health')
+  assert.ok(content.includes('relation graph'), 'missing relation graph reference')
+  assert.ok(content.includes('audit-history'), 'missing audit-history path')
+})
+
+test('mythos-evolve skill references AKL lifecycle management', () => {
+  const content = skills['mythos-evolve']
+  assert.ok(content.includes('AKL Maintenance'), 'missing AKL maintenance')
+  assert.ok(content.includes('Promote'),  'missing promote reference')
+  assert.ok(content.includes('Demote'),   'missing demote reference')
+  assert.ok(content.includes('Relation Graph Health'), 'missing relation graph health')
+  assert.ok(content.includes('.relations-index.json'), 'missing relations index reference')
 })
 
 // ─── questions.mjs ────────────────────────────────────────────────────────────
