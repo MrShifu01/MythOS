@@ -8,7 +8,7 @@ An AI workflow harness for Claude Code. Gives the model the right context and ge
 npx mythos-install
 ```
 
-Asks 5 questions about your project. Generates `.mythos/` with your standards, Context Tree, and calibration anchors. Installs 6 skills to `~/.claude/skills/`.
+Asks 5 questions about your project. Generates `.mythos/` with your standards, Context Tree, and calibration anchors. Installs 4 skills to `~/.claude/skills/`.
 
 ## The four mechanisms
 
@@ -23,11 +23,9 @@ After install, these slash commands are available in Claude Code:
 
 | Command | What it does |
 |---|---|
-| `/mythos:do` | Define outcome + progressive retrieval from Context Tree + execute + score. |
+| `/mythos:do` | Outcome-first execution: retrieve → curate memory → taste-aware coding → score. |
 | `/mythos:audit` | Full codebase health score (8 dimensions) + Context Tree health + generates sprint file. |
-| `/mythos:evolve` | Improve standards, rubrics, skills, and Context Tree lifecycle via scored evidence. |
-| `/mythos:remember` | Curate knowledge into Context Tree with atomic operations (ADD/UPDATE/UPSERT/MERGE/DELETE). |
-| `/mythos:taste` | Learn YOUR coding preferences from git diffs — cross-project at `~/.mythos/taste/`. |
+| `/mythos:evolve` | Improve standards, rubrics, skills + Context Tree lifecycle + taste learning from git diffs. |
 | `/mythos:status` | Context Tree dashboard + AKL lifecycle + taste stats + score trends. |
 
 ## What gets installed
@@ -116,6 +114,6 @@ SmashOS users: MythOS replaces SmashOS. The key changes:
 | CLAUDE.md (170 lines) | CLAUDE.md (~50 lines, generated) |
 | 12 role files | `standards.md` (one file, your team's taste) |
 | 47 agent files | 0 agent files (model judges) |
-| 15+ skills | 6 skills |
+| 15+ skills | 4 skills |
 | Behavioral guardrail layer | Removed — "trust yourself" principle |
 | Flat memory files | Context Tree with AKL lifecycle + relation graph |

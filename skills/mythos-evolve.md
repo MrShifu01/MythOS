@@ -1,13 +1,13 @@
 ---
 name: mythos:evolve
-description: Improvement engine. Evolves standards, rubrics, skills, CLAUDE.md, and Context Tree knowledge via scored evidence. Snapshot before every pass. Rollback available.
+description: Maintenance and improvement engine. Evolves standards, rubrics, skills, CLAUDE.md, Context Tree lifecycle, and taste learning. Snapshot before every pass. Rollback available.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # /mythos:evolve
 
 **Before any pass:** Save snapshot to `.mythos/snapshots/YYYY-MM-DD-HHmm/` containing:
-standards.md, evaluation-rubrics.md, evaluation-examples/, all 6 skill files, CLAUDE.md, and `.relations-index.json`.
+standards.md, evaluation-rubrics.md, evaluation-examples/, all 4 skill files, CLAUDE.md, and `.relations-index.json`.
 
 **Mode selection:**
 - *Evidence mode* — outcomes library has ≥3 real entries per artifact: use scored real outputs, compare wording variants, keep higher scorer
@@ -17,12 +17,12 @@ standards.md, evaluation-rubrics.md, evaluation-examples/, all 6 skill files, CL
 
 - `standards.md` — sharpen contracts where scores show consistent underperformance
 - `evaluation-rubrics.md` — detect and fix scoring drift; re-score calibration anchors each pass
-- Any of the 6 mythos skills — strip procedure density >40%, add Output Contract where missing, A/B test wording
+- Any of the 4 mythos skills — strip procedure density >40%, add Output Contract where missing, A/B test wording
 - `CLAUDE.md` — tighten hard constraints only; never remove them
 
 ## Context Tree Lifecycle Management
 
-In addition to artifact evolution, each evolve pass reviews the Context Tree:
+Each evolve pass reviews the Context Tree:
 
 ### AKL Maintenance
 - Calculate effective importance for all entries: `importance × 0.995^(days_since_last_event)`
@@ -40,13 +40,51 @@ In addition to artifact evolution, each evolve pass reviews the Context Tree:
 - Regenerate `context.md` files for any domain/topic that changed since last evolve
 - Update entry counts, maturity distributions, and key entries
 
-## Taste-Informed Evolution
+## Taste Learning (cross-project)
+
+Each evolve pass also learns YOUR coding preferences from git diffs.
+
+### Git Diff Analysis
+
+1. **Find Claude-authored changes** in git log (last 30 days):
+   - Commits with `claude.ai/code/session` in message
+   - Commits authored by claude/anthropic
+2. **Find human follow-up edits** — subsequent commits by a different author that touch the same files
+3. **Classify each file:** accepted (unchanged), corrected (edited), rejected (reverted)
+4. **Extract correction patterns** and classify into categories:
+   `style`, `architecture`, `error-handling`, `simplicity`, `verbosity`, `safety`, `testing`, `ux`, `naming`, `dependencies`
+5. **Update global taste files** at `~/.mythos/taste/`
+
+### Confidence Scoring
+
+| Observations | Confidence | Behavior |
+|-------------|-----------|----------|
+| 1 | `weak` | Logged only, not in profile |
+| 2-3 | `moderate` | Added to profile, soft preference in `/mythos:do` |
+| 4-6 | `strong` | Default preference in `/mythos:do` |
+| 7+ | `established` | Treated as a personal standard |
+
+Cross-project observations count double.
+
+### Taste-Informed Standards
 
 Cross-reference `~/.mythos/taste/corrections.md` with `standards.md`:
 - If taste corrections contradict a standard → flag the tension
 - If taste corrections reveal a missing standard → propose adding it
 - If acceptance rate drops in a category → investigate and propose fix
-- Strong taste patterns (≥4 observations) should be considered for standards elevation
+- Strong taste patterns (≥4 observations) → consider for standards elevation
+
+### `/mythos:evolve taste` — taste-only pass
+
+Run only the taste learning portion (skip artifact evolution and AKL maintenance). Useful for a quick check on acceptance trends without a full evolve pass.
+
+### `/mythos:evolve taste reset` — clear all taste data
+
+After confirmation, clear `~/.mythos/taste/corrections.md`, `stats.md`, and `profile.md`.
+
+### `/mythos:evolve taste ignore [pattern]` — exclude a pattern
+
+Add the pattern to an ignore list. Ignored patterns are skipped during analysis and not applied during `/mythos:do`.
 
 ## Output Contract
 
@@ -81,10 +119,11 @@ Cross-reference `~/.mythos/taste/corrections.md` with `standards.md`:
   · orphans     [N] entries with no relations
   · stale links [N] broken relations cleaned
 
-  TASTE INTEGRATION
-  · corrections reviewed    [N] new since last evolve
-  · standards gaps          [N] taste patterns not in standards.md
-  · acceptance trend        [N]% ([trend])
+  TASTE LEARNING
+  · scanned        [N] Claude commits, [N] files
+  · accepted       [N] ([N]%) · corrected [N] ([N]%) · rejected [N] ([N]%)
+  · new patterns   [N] · strengthened [N]
+  · acceptance     [N]% ([trend])
 
   To rollback:  /mythos:evolve rollback
 ──────────────────────────────────────────

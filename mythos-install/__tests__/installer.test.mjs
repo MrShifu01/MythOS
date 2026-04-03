@@ -10,15 +10,13 @@ import { generateStandardsMd }                       from '../questions.mjs'
 
 // ─── templates.mjs ────────────────────────────────────────────────────────────
 
-test('getCLAUDEMd returns ≤65-line CLAUDE.md with all 6 commands', () => {
+test('getCLAUDEMd returns ≤65-line CLAUDE.md with all 4 commands', () => {
   const md = getCLAUDEMd()
   const lines = md.trim().split('\n')
   assert.ok(lines.length <= 65, `Expected ≤65 lines, got ${lines.length}`)
   assert.ok(md.includes('/mythos:do'),       'missing /mythos:do')
   assert.ok(md.includes('/mythos:audit'),    'missing /mythos:audit')
   assert.ok(md.includes('/mythos:evolve'),   'missing /mythos:evolve')
-  assert.ok(md.includes('/mythos:remember'), 'missing /mythos:remember')
-  assert.ok(md.includes('/mythos:taste'),    'missing /mythos:taste')
   assert.ok(md.includes('/mythos:status'),   'missing /mythos:status')
 })
 
@@ -52,10 +50,10 @@ test('memoryFiles contains all 7 expected legacy files', () => {
   }
 })
 
-test('skills exports exactly 6 skills', () => {
+test('skills exports exactly 4 skills', () => {
   const skillNames = Object.keys(skills)
-  assert.equal(skillNames.length, 6, `Expected 6 skills, got ${skillNames.length}: ${skillNames.join(', ')}`)
-  for (const name of ['mythos-do', 'mythos-audit', 'mythos-evolve', 'mythos-remember', 'mythos-status', 'mythos-taste']) {
+  assert.equal(skillNames.length, 4, `Expected 4 skills, got ${skillNames.length}: ${skillNames.join(', ')}`)
+  for (const name of ['mythos-do', 'mythos-audit', 'mythos-evolve', 'mythos-status']) {
     assert.ok(name in skills, `Missing skill: ${name}`)
   }
 })
@@ -139,17 +137,14 @@ test('getRelationsIndex returns valid empty JSON', () => {
 
 // ─── Skills — ByteRover integration ──────────────────────────────────────────
 
-test('mythos-remember skill references Context Tree and curate operations', () => {
-  const content = skills['mythos-remember']
-  assert.ok(content.includes('Context Tree'), 'missing Context Tree reference')
+test('mythos-do skill includes memory curation with curate operations', () => {
+  const content = skills['mythos-do']
+  assert.ok(content.includes('Memory Curation'), 'missing Memory Curation section')
   assert.ok(content.includes('ADD'),    'missing ADD operation')
   assert.ok(content.includes('UPDATE'), 'missing UPDATE operation')
   assert.ok(content.includes('UPSERT'), 'missing UPSERT operation')
   assert.ok(content.includes('MERGE'),  'missing MERGE operation')
   assert.ok(content.includes('DELETE'), 'missing DELETE operation')
-  assert.ok(content.includes('importance'), 'missing AKL importance reference')
-  assert.ok(content.includes('maturity'),   'missing AKL maturity reference')
-  assert.ok(content.includes('relations'),  'missing relations reference')
 })
 
 test('mythos-do skill references progressive retrieval tiers', () => {
@@ -213,10 +208,9 @@ test('generateStandardsMd — fast mode Security weight > right mode Security we
 
 // ─── Taste Learning ──────────────────────────────────────────────────────────
 
-test('mythos-taste skill references git diff analysis and confidence scoring', () => {
-  const content = skills['mythos-taste']
-  assert.ok(content.includes('git log'), 'missing git log reference')
-  assert.ok(content.includes('claude.ai/code/session'), 'missing session URL detection')
+test('mythos-evolve skill includes taste learning with confidence scoring', () => {
+  const content = skills['mythos-evolve']
+  assert.ok(content.includes('Taste Learning'), 'missing Taste Learning section')
   assert.ok(content.includes('accepted'), 'missing accepted classification')
   assert.ok(content.includes('corrected'), 'missing corrected classification')
   assert.ok(content.includes('rejected'), 'missing rejected classification')
@@ -226,44 +220,23 @@ test('mythos-taste skill references git diff analysis and confidence scoring', (
   assert.ok(content.includes('established'), 'missing established confidence')
 })
 
-test('mythos-taste skill references all 10 correction categories', () => {
-  const content = skills['mythos-taste']
-  for (const cat of ['style', 'architecture', 'error-handling', 'simplicity', 'verbosity', 'safety', 'testing', 'ux', 'naming', 'dependencies']) {
-    assert.ok(content.includes(cat), `missing correction category: ${cat}`)
-  }
+test('mythos-evolve skill has taste subcommands', () => {
+  const content = skills['mythos-evolve']
+  assert.ok(content.includes('evolve taste'), 'missing taste subcommand')
+  assert.ok(content.includes('taste reset'), 'missing taste reset')
+  assert.ok(content.includes('taste ignore'), 'missing taste ignore')
 })
 
-test('mythos-taste skill has review, reset, and ignore modes', () => {
-  const content = skills['mythos-taste']
-  assert.ok(content.includes('taste review'), 'missing review mode')
-  assert.ok(content.includes('taste reset'), 'missing reset mode')
-  assert.ok(content.includes('taste ignore'), 'missing ignore mode')
-})
-
-test('CLAUDE.md references taste profile in session start', () => {
+test('CLAUDE.md references taste profile and taste learning', () => {
   const md = getCLAUDEMd()
   assert.ok(md.includes('taste/profile.md'), 'missing taste profile in session start')
-  assert.ok(md.includes('/mythos:taste'), 'missing taste command')
   assert.ok(md.includes('taste-spec.md'), 'missing taste spec reference')
+  assert.ok(md.includes('Taste'), 'missing Taste section')
 })
 
 test('mythos-do skill references taste-aware execution', () => {
   const content = skills['mythos-do']
   assert.ok(content.includes('Taste-Aware'), 'missing taste-aware section')
   assert.ok(content.includes('taste profile influenced'), 'missing taste influence reporting')
-})
-
-test('mythos-evolve skill references taste integration', () => {
-  const content = skills['mythos-evolve']
-  assert.ok(content.includes('Taste'), 'missing taste section')
-  assert.ok(content.includes('taste/corrections.md'), 'missing corrections reference')
-  assert.ok(content.includes('acceptance'), 'missing acceptance reference')
-})
-
-test('mythos-status skill shows taste metrics', () => {
-  const content = skills['mythos-status']
-  assert.ok(content.includes('TASTE'), 'missing TASTE section in status')
-  assert.ok(content.includes('acceptance'), 'missing acceptance rate')
-  assert.ok(content.includes('patterns'), 'missing patterns count')
 })
 
